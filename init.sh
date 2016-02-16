@@ -1,7 +1,12 @@
 #!/bin/sh
 
+echo "Boot complete."
+echo "I am device #$DEVICE_ID"
+
 echo "Launching Zookeeper"
-echo "TODO"
+service zookeeper stop
+echo $DEVICE_ID > /var/lib/zookeeper/myid
+service zookeeper start
 
 echo "Launching Kafka"
 echo "TODO"
