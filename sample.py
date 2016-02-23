@@ -12,8 +12,8 @@ def callback(message):
 if os.environ['DEVICE_ID'] == '2':
     print('registering callback')
     m.registerCallback(callback)
-    m.start()
 else:
     print('sending message')
     m.sendMessage('2', 'hello, 2, i am %s' % m.getOwnName())
-    m.start()
+
+m.start()
