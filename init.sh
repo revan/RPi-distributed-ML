@@ -8,5 +8,5 @@ service zookeeper stop
 echo $DEVICE_ID > /var/lib/zookeeper/myid
 service zookeeper start
 
-echo "Launching Kafka"
-echo "TODO"
+echo "Starting sample.py"
+python3 /app/sample.py
