@@ -8,6 +8,7 @@ RUN apt-get install -y libzmq3-dev
 
 RUN pip install kazoo
 RUN pip install pyzmq
+RUN pip install numpy
 
 COPY . /app
 COPY zoo.cfg /etc/zookeeper/conf/zoo.cfg
