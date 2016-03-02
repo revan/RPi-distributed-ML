@@ -6,8 +6,8 @@ from clustermessaging.Messager import Messager
 
 m = Messager()
 
-def callback(message):
-    print('Message Received! %s' % message)
+def callback(message, name):
+    print('Message Received from %s! %s' % (name, message))
 
 if os.environ['DEVICE_ID'] == '2':
     print('registering callback')

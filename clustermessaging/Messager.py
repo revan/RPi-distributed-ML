@@ -3,7 +3,7 @@ import zmq
 import time
 import sys
 import os
-import random
+import pickle
 import threading
 
 import logging
@@ -104,13 +104,17 @@ class Messager:
             raise RuntimeError('No link between me and %s in topology!' % name)
 
     def sendMessage(self, name, message):
-        self.getSocket(name).send_string(message)
+        self.getSocket(name).send_pyobj(message)
 
     def registerCallbackIndividual(self, callbackFunction, name):
+        def decorator(data):
+            message = pickle.loads(b''.join(data))
+            callbackFunction(message, name)
+
         socket = self.getSocket(name)
 
         self.stream = zmqstream.ZMQStream(socket, self.loop)
-        self.stream.on_recv(callbackFunction)
+        self.stream.on_recv(decorator, copy=True)
 
     def registerCallback(self, callbackFunction):
         for name in self.neighbors:
@@ -118,5 +122,5 @@ class Messager:
                 self.registerCallbackIndividual(callbackFunction, name)
 
     def start(self):
-        self.loop.start()
+        threading.Thread(target=self.loop.start).start()
 
