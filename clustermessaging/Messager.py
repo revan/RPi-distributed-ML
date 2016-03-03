@@ -22,7 +22,7 @@ class Messager:
         self.context = zmq.Context()
 
         self.zk = KazooClient()
-        self.zk.start()
+        self.zk.start(timeout=1000)
 
         # send own address to zookeeper
         self.zk.ensure_path("/addr")
