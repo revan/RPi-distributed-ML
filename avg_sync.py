@@ -17,18 +17,6 @@ my_val = assignment[str(ID)]
 # print("My val is {0}".format(my_val))
 
 def get_incidence_matrix(topo):
-
-	# total_edges = 0
-	# total_nodes = len(topo)
-	# for key in topo:
-	# 	total_edges += len(topo[key])
-
-	# mat = np.zeros([total_nodes,total_edges], dtype=int)
-
-	# for key in topo:
-	# 	edge_list = topo[key]
-	# 	for node in edge_list:
-	# 		mat[int(key)-1,int(node)] = 1
 	n = len(topo)
 	mat = np.zeros([n,n],dtype=int)
 	for key in topo:
@@ -67,9 +55,6 @@ def generate_stochastic_matrix(topo):
 		if weights[i] == float('inf'):
 			weights[i] = 0
 
-	# print(mat)
-	# print(weights)
-
 	stoc_mat = np.zeros([n,n],dtype=float)
 	for i in range(weights.size):
 		for j in range(n):
@@ -106,12 +91,6 @@ def callback(message,name):
 			'rsvp': False
 		}
 		m.sendMessage(name,reply)
-	# elif message['rsvp'] == False:
-	# 	if node_val_map[name] is None:
-	# 		node_val_map[name] = message['value']
-
-	# x[message['sender']-1] = message['value']
-
 
 # Used to deal with infinity values
 MAXINT = 65535 
@@ -168,16 +147,6 @@ for i in range(iterations):
 
 	print("The node_value_map is {0}".format(node_val_map))
 	
-	# if not all_vals_received(node_val_map):
-	# 	for recipient in neighbors:
-	# 		if node_val_map[recipient] == None:
-	# 			message = {
-	# 				'value' : my_val,
-	# 				'rsvp'  : True
-	# 			}
-	# 			print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
-	# 			m.sendMessage(recipient,message)
-				
 	# Construct X
 	for key in node_val_map:
 		x[int(key)-1] = node_val_map[key]
@@ -186,12 +155,5 @@ for i in range(iterations):
 	my_val = np.dot(w,x)[0]
 	reset_received_vals(node_val_map)
 
-# 	print("x is {0}".format(x))
-# 	if all_vals_received(node_val_map):
-# 		# Multiply w by own vector and update my_val
-# 		my_val = np.dot(w,x)[0] # The value is inside the numpy array
-# 		# x[ID-1] = my_val
-# 		print('Node {0} changed its value to {1}'.format(ID,my_val))
-# 		reset_received_vals(node_val_map)
-# # Receive values from other nodes and place them in the vector
+
 
