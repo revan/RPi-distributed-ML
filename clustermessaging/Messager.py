@@ -5,6 +5,7 @@ import sys
 import os
 import pickle
 import threading
+from collections import deque, defaultdict
 
 import logging
 logging.basicConfig(level=logging.WARNING)
@@ -60,6 +61,11 @@ class Messager:
 
             self.neighbors[name] = socket
 
+        self.sync = defaultdict(deque)
+        self.sync_cv = threading.Condition()
+
+        self.streams = {}
+
     def _loadTopography(self):
         with open('topo.json') as data_file:
             self.topo = json.load(data_file)
@@ -82,8 +88,8 @@ class Messager:
 
         # oh god why
         import socket
-        return 'tcp://%s' % [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for\
-                s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+        return 'tcp://%s' % [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for \
+                             s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
 
 
     def getNeighbors(self):
@@ -124,20 +130,68 @@ class Messager:
         """
         self.getSocket(name).send_pyobj(message)
 
+    def waitForMessageFromAllNeighbors(self, sync):
+        """
+        Blocks until a message has been received from every neighbor
+        :param sync: value of sync field (iteration number, say)
+        :return:
+        """
+        self.flush() # if we don't flush we might somehow block before actually sending messages!
+        self.sync_cv.acquire()
+        while True:
+            nameset = set()
+            for message in self.sync[sync]:
+                nameset.add(message['from'])
+            if len(nameset) >= len(self.neighbors):
+                break
+
+            self.sync_cv.wait()
+        self.sync_cv.release()
+
+    def registerCallbackSync(self):
+        """
+        Registers a callback for synchronous algorithms, which will
+        queue up a message based on its "sync" field.
+        Put the iteration number in the field, for example.
+
+        Spawns a new thread to do this, so we don't block the ioloop.
+        """
+        def callbacksync(message, name):
+            message['from'] = name
+
+            self.sync_cv.acquire()
+            self.sync[message['sync']].append(message)
+            self.sync_cv.notifyAll()
+            self.sync_cv.release()
+
+        def spawner(message, name):
+            thread = threading.Thread(target=callbacksync, args=(message,name))
+            thread.start()
+
+        for name in self.neighbors:
+            if name is not self.getOwnName():
+                self.registerCallbackIndividual(spawner, name)
+
+
+
     def registerCallbackIndividual(self, callbackFunction, name):
         """
         Register an async callback on a specific neighbor. Use registerCallback() to register on all neighbors.
         :param callbackFunction: function taking two parameters, message and name.
         :param name: neighbor we're registering on
         """
+        socket = self.getSocket(name)
+
+        stream = zmqstream.ZMQStream(socket, self.loop)
+
         def decorator(data):
             message = pickle.loads(b''.join(data))
             callbackFunction(message, name)
 
-        socket = self.getSocket(name)
+        stream.on_recv(decorator, copy=True)
 
-        self.stream = zmqstream.ZMQStream(socket, self.loop)
-        self.stream.on_recv(decorator, copy=True)
+        self.streams[name] = stream
+
 
     def registerCallback(self, callbackFunction):
         """
@@ -156,3 +210,9 @@ class Messager:
         """
         threading.Thread(target=self.loop.start).start()
 
+    def stop(self):
+        self.loop.stop()
+
+    def flush(self):
+        for stream in self.streams.values():
+            stream.flush()
