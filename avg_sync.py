@@ -6,11 +6,11 @@ from clustermessaging.Messager import Messager
 import os
 import csv
 
-# assignment = {
-# 	"1": 6,
-# 	"2": 9,
-# 	"3": 12
-# }
+assignment = {
+	"1": 6,
+	"2": 9,
+	"3": 12
+}
 
 # Used to deal with infinity values
 MAXINT = 65535 
@@ -41,9 +41,25 @@ def get_incidence_matrix(topo):
 
 def generate_stochastic_matrix(topo):
 
-	mat = get_incidence_matrix(topo)
+	# incidence_matrix = get_incidence_matrix(topo)
+
+	# # n and m should be equal
+	# n,m = incidence_matrix.shape
+
+	# stochastic_matrix = np.random.rand(n,m)
+
+	# # Element-wise multiplication 
+	# stochastic_matrix = np.multiply(incidence_matrix,stochastic_matrix)
+
+	# # Normalizes each column
+	# for i in range(n):
+	# 	stochastic_matrix[:,i] = stochastic_matrix[:,i] / sum(stochastic_matrix[:,i])
+
+	# return stochastic_matrix
+
 	# Algorithm pulled from: http://cvxr.com/cvx/examples/graph_laplacian/html/mh.html
 	# unweighted Laplacian matrix
+	mat = get_incidence_matrix(topo)
 	Lunw = np.dot(mat,mat.T)
 	n,m = Lunw.shape
 	degrees = Lunw.diagonal()
@@ -78,50 +94,57 @@ def generate_stochastic_matrix(topo):
 def get_weights(m,ID):
 	# Get stochastic matrix 
 	W = generate_stochastic_matrix(m.topo)
-	# print("W is {0}".format(W))
+	print("W is {0}".format(W))
 
 	# Get own weights
 	w = W[ID-1]
 
 	return w
 
-
 w = get_weights(m,ID)
 # print("w is {0}".format(w))
 
 # Generate x vector
-nodes = len(neighbors) + 1
+nodes = len(m.topo)
 x = np.zeros([nodes,1],dtype=float)
+# print("x is {0}".format(x))
 
 # Insert own value
 x[ID-1] = my_val
 
-iterations = 100
-for iter in range(iterations):
+# f = open("{0}.csv".format(ID),'w')
+# writer = csv.writer(f)
+
+
+iterations = 20
+for i in range(iterations):
 	# All of the communication to neighbors
 	for recipient in m.getNeighbors().keys():
 		message = {
 			'value' : my_val,
-			'sync'  : iter
+			'sync'  : i
 		}
 		# print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
 		m.sendMessage(recipient,message)
 
 	# print("Waiting for all values to arrive")
-	m.waitForMessageFromAllNeighbors(iter)
+	m.waitForMessageFromAllNeighbors(i)
 
 	# print("Got all values. Constructing x vector")
 	# Construct X
-	for message in m.sync[iter]:
+	for message in m.sync[i]:
 		node = int(message['from'])
 		value = float(message['value'])
 
 		x[node-1] = value
 
 
-	# print("w is {0}, x is {1}".format(w,x))
+	# print("x is {0}".format(x))
 	my_val = np.dot(w,x)[0]
 	print("my_val is {0}".format(my_val))
+	# writer.writerow((i,my_val))
+
+# f.close()
 
 
 
