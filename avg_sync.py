@@ -5,6 +5,10 @@ import random
 from clustermessaging.Messager import Messager
 import os
 import csv
+from numpy import linalg as la
+import pprint
+
+pp = pprint.PrettyPrinter()
 
 assignment = {
 	"1": 6,
@@ -31,7 +35,7 @@ print("Starting val is: {0}".format(my_val))
 
 def get_incidence_matrix(topo):
 	n = len(topo)
-	mat = np.zeros([n,n],dtype=int)
+	mat = np.zeros([n,n],dtype=float)
 	for key in topo:
 		edges = topo[key]
 		for node in edges:
@@ -51,15 +55,28 @@ def generate_stochastic_matrix(topo):
 	# # Element-wise multiplication 
 	# stochastic_matrix = np.multiply(incidence_matrix,stochastic_matrix)
 
-	# # Normalizes each column
-	# for i in range(n):
-	# 	stochastic_matrix[:,i] = stochastic_matrix[:,i] / sum(stochastic_matrix[:,i])
 
 	# return stochastic_matrix
+	# # Square the matrix. This makes sure that no column has only 1 non-zero entry.
+	# stoc_mat = la.matrix_power(mat,2)
+	
+	# rows, columns = stoc_mat.shape
+	# # Normalizes each column
+	# for i in range(columns):
+	# 	stoc_mat[:,i] = stoc_maht[:,i] / sum(stoc_mat[:,i])
+
+	# import pprint
+	# pp = pprint.PrettyPrinter()
+	# pp.pprint(stoc_mat)
+
+	# return stoc_mat
 
 	# Algorithm pulled from: http://cvxr.com/cvx/examples/graph_laplacian/html/mh.html
 	# unweighted Laplacian matrix
+
+	# Get back matrix of floats, where each entry is either 1 or 0
 	mat = get_incidence_matrix(topo)
+
 	Lunw = np.dot(mat,mat.T)
 	n,m = Lunw.shape
 	degrees = Lunw.diagonal()
@@ -88,6 +105,16 @@ def generate_stochastic_matrix(topo):
 	for i in range(weights.size):
 		for j in range(n):
 			stoc_mat[j,i] = weights[i][0] * mat[j,i]
+
+
+	stoc_mat = mat
+
+	for i in range(len(stoc_mat)):
+		stoc_mat[i,i] = 0
+
+	stoc_mat = stoc_mat * .5
+
+	pp.pprint(stoc_mat)
 
 	return stoc_mat
 
