@@ -1,9 +1,30 @@
-config = 'graph{layout=neato;splines=true;node [shape=box style=filled];1 [pos="1,4!"];2 [pos="2,4!"];3 [pos="3,4!"];4 [pos="4,4!"];5 [pos="1,3!"];6 [pos="2,3!"];7 [pos="3,3!"];8 [pos="4,3!"];9 [pos="1,2!"];10[pos="2,2!"];11[pos="3,2!"];12[pos="4,2!"];13[pos="1,1!"];14[pos="2,1!"];15[pos="3,1!"];16[pos="4,1!"];';
-edges = "";
+var edges = "";
+var width=4;
+var height=4;
+var network = {};
+for (var i = 1; i <= width * height; i++) {
+    network[i] = [];
+}
 
-var updateGraph = function() {
+var updateGraph = function() {    
+    var config = 'graph{layout=neato;splines=true;node [shape=box style=filled];';
+
     $("svg").remove();
-    document.body.innerHTML += Viz(config + edges + "}");
+
+    var i = 1;
+    var nodes = "";
+    for (var h = height - 1; h >= 0; h--) {
+        for (var w = 0; w < width; w++) {
+            nodes += i++ + ' [pos="' + w + ',' + h + '!"];';
+        }
+    }
+
+    document.body.innerHTML += Viz(config + nodes + edges + "}");
+
+    var addLinkToNetwork = function(node1, node2) {
+        network[node1].push(+node2);
+        network[node2].push(+node1);
+    }
 
     var first = null;
     $('.node').each(function(index) {
@@ -12,10 +33,47 @@ var updateGraph = function() {
             if (first == null) {
                 first = node;
             } else {
+                addLinkToNetwork(first, node);
                 edges += first + "--" + node + ";";
                 node = null;
                 updateGraph();
             }
+        });
+    });
+
+    $('#button-grid').unbind('click').click(function() {
+        edges = "";
+        for (var h = 0; h < height; h++) {
+            for (var w = 0; w < width; w++) {
+                if (w < width - 1) {
+                    addLinkToNetwork(h * height + w + 1, h * height + w + 2);
+                    edges += (h * height + w + 1) + "--" + (h * height + w + 2) + ";"
+                }
+                if (h < height - 1) {
+                    addLinkToNetwork(h * height + w + 1, (h + 1) * height + w + 1);
+                    edges += (h * height + w + 1) + "--" + ((h + 1) * height + w + 1) + ";";
+                }
+            }
+        }
+        updateGraph();
+    });
+
+    $('#button-complete').unbind('click').click(function() {
+        edges = "";
+        for (var i = 1; i < height * width; i++) {
+            for (var k = i + 1; k <= height * width; k++) {
+                addLinkToNetwork(i, k);
+                edges += i + "--" + k + ";";
+            }
+        }
+        updateGraph();
+    });
+
+    $('#button-save').unbind('click').click(function() {
+        var str = JSON.stringify(network);
+        console.log(str);
+        $.post('./topo.json', str, function() {
+            document.body.innerHTML += "<h1>Saved!</h1>";
         });
     });
 }

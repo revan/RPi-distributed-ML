@@ -1,5 +1,8 @@
-from flask import Flask, render_template
+import json
+from flask import Flask, render_template, request, send_file
 app = Flask(__name__)
+
+topology = {i: [] for i in range(1, 16)}
 
 @app.route('/')
 def main():
@@ -9,9 +12,14 @@ def main():
 def graphviz():
     return render_template('graph.viz')
 
-@app.route('/topo.json')
+@app.route('/topo.json', methods=['POST', 'GET'])
 def topo():
-    return render_template('topo.json')
+    if request.method == 'POST':
+        global topology
+        topology = request.get_json(force=True)
+        print(topology)
+
+    return json.dumps(topology)
 
 if __name__ == "__main__":
     app.run(debug=True)
