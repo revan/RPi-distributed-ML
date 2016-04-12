@@ -8,6 +8,10 @@ topology = {i: [] for i in range(1, 16)}
 def main():
     return render_template('routing.html')
 
+@app.route('/wifi')
+def wifi():
+    return render_template('wifi.html')
+
 @app.route('/graph.viz')
 def graphviz():
     return render_template('graph.viz')
