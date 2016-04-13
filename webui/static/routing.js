@@ -24,13 +24,13 @@ var updateGraph = function() {
     var addLinkToNetwork = function(node1, node2) {
         network[node1].push(+node2);
         network[node2].push(+node1);
-    }
+    };
 
     var first = null;
     $('.node').each(function(index) {
         $(this).click(function() {
             var node = $("#" + this.id + "> title").text();
-            if (first == null) {
+            if (first === null) {
                 first = node;
             } else {
                 addLinkToNetwork(first, node);
@@ -47,7 +47,7 @@ var updateGraph = function() {
             for (var w = 0; w < width; w++) {
                 if (w < width - 1) {
                     addLinkToNetwork(h * height + w + 1, h * height + w + 2);
-                    edges += (h * height + w + 1) + "--" + (h * height + w + 2) + ";"
+                    edges += (h * height + w + 1) + "--" + (h * height + w + 2) + ";";
                 }
                 if (h < height - 1) {
                     addLinkToNetwork(h * height + w + 1, (h + 1) * height + w + 1);
@@ -70,12 +70,15 @@ var updateGraph = function() {
     });
 
     $('#button-save').unbind('click').click(function() {
+        network.from = +$('#from').val();
+        network.to = +$('#to').val();
+
         var str = JSON.stringify(network);
         console.log(str);
         $.post('./topo.json', str, function() {
             document.body.innerHTML += "<h1>Saved!</h1>";
         });
     });
-}
+};
 
 updateGraph();

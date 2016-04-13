@@ -14,6 +14,7 @@ from kazoo.client import KazooClient
 
 from zmq.eventloop import ioloop, zmqstream
 
+
 class Messager:
     def __init__(self):
         self.loop = ioloop.IOLoop.instance()
@@ -76,21 +77,22 @@ class Messager:
         # Cantor pairing function
         return 9000 + (a + b) * (a + b + 1) / 2 + a
 
-    def getOwnName(self):
+    @staticmethod
+    def getOwnName():
         if not 'DEVICE_ID' in os.environ:
             raise RuntimeError('var DEVICE_ID not defined')
 
         return os.environ['DEVICE_ID']
 
-    def getOwnAddr(self):
+    @staticmethod
+    def getOwnAddr():
         # uncomment when running locally
         # return 'tcp://localhost'
 
         # oh god why
         import socket
-        return 'tcp://%s' % [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for \
+        return 'tcp://%s' % [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for
                              s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
-
 
     def getNeighbors(self):
         """
@@ -98,6 +100,20 @@ class Messager:
         :return: the dict of names to sockets
         """
         return self.neighbors
+
+    def getOwnLocation(self):
+        return self.getLocation(self.getOwnName())
+
+    def getLocation(self, id):
+        return tuple(self.topo['geo'][str(id)])
+
+    def getTarget(self):
+        if 'to' in self.topo:
+            return self.getLocation(self.topo['to'])
+        return tuple(self.topo['geo']['target'])
+
+    def startIsMe(self):
+        return str(self.topo['from']) == self.getOwnName()
 
     def getAddr(self, name):
         """
@@ -172,8 +188,6 @@ class Messager:
             if name is not self.getOwnName():
                 self.registerCallbackIndividual(spawner, name)
 
-
-
     def registerCallbackIndividual(self, callbackFunction, name):
         """
         Register an async callback on a specific neighbor. Use registerCallback() to register on all neighbors.
@@ -191,7 +205,6 @@ class Messager:
         stream.on_recv(decorator, copy=True)
 
         self.streams[name] = stream
-
 
     def registerCallback(self, callbackFunction):
         """

@@ -11,6 +11,7 @@ var init_page = function() {
     var nodes = [];
     var signals = [];
     var groups = [];
+    var target;
     var canvas = new fabric.Canvas('canvas');
     canvas.setHeight(canvas_height);
     canvas.setWidth(canvas_width);
@@ -26,9 +27,9 @@ var init_page = function() {
         }));
         signals.push(new fabric.Circle({
             radius: signal_radius,
-            fill: 'rgba(51, 204, 255, 0.3)',
+            fill: 'rgba(51, 204, 255, 0.1)',
             left: 0,
-            top: 0
+            top: 0,
         }));
         var label = new fabric.Text(i+1+'', {
             left: signal_radius - 0.5 * node_radius,
@@ -41,8 +42,20 @@ var init_page = function() {
             top: Math.floor((Math.random() * (canvas_height - 1.3 * signal_radius)) + 1 - 0.5 * signal_radius)
         }));
 
+        groups[i].hasControls = false;
+
         canvas.add(groups[i]);
-    };
+    }
+
+    target = new fabric.Rect({
+        fill:'red',
+        width: node_radius,
+        height: node_radius,
+        left: Math.floor((Math.random() * (canvas_width - 2 * signal_radius)) + 1),
+        top: Math.floor((Math.random() * (canvas_height - 2 * signal_radius)) + 1)
+    });
+    target.hasControls = false;
+    canvas.add(target);
 
     $('#button-grid').unbind('click').click(function() {
         // edges = "";
@@ -73,17 +86,21 @@ var init_page = function() {
     });
 
     $('#button-save').unbind('click').click(function() {
+        var i;
         var network = {};
 
-        for (var i = 1; i <= num_nodes; i++) {
+        for (i = 1; i <= num_nodes; i++) {
             network[i] = [];
         }
+
+        network.geo = {'target': [target.left, target.top]};
 
         var distance = function(node1, node2) {
             return Math.sqrt(Math.pow(node1.top - node2.top, 2) + Math.pow(node1.left - node2.left, 2));
         };
 
-        for (var i = 0; i < num_nodes; i++) {
+        for (i = 0; i < num_nodes; i++) {
+            network.geo[i+1] = [groups[i].left + signal_radius, groups[i].top + signal_radius];
             for (var k = 0; k < num_nodes; k++) {
                 if (i != k && distance(groups[i], groups[k]) <= signal_radius) {
                     network[k+1].push(i+1);
@@ -91,13 +108,14 @@ var init_page = function() {
             }
         }
 
+        network.from = +$('#from').val();
+
         var str = JSON.stringify(network);
         console.log(str);
         $.post('./topo.json', str, function() {
-            alert('saved!');
-            // document.body.innerHTML += "<h1>Saved!</h1>";
+            $('#notify').html("<h1>Saved!</h1>");
         });
     });
-}
+};
 
 init_page();

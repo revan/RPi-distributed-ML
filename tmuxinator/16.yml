@@ -1,0 +1,31 @@
+name: 16
+root: ~/repo/capstone
+
+pre:
+  - echo "rmr /addr" | zkCli.sh
+
+pre_window: source env/bin/activate
+
+windows:
+  - nodes1:
+      layout: tile
+      panes:
+        - DEVICE_ID=1 python3 <%= @args[0] %>
+        - DEVICE_ID=2 python3 <%= @args[0] %>
+        - DEVICE_ID=3 python3 <%= @args[0] %>
+        - DEVICE_ID=4 python3 <%= @args[0] %>
+        - DEVICE_ID=5 python3 <%= @args[0] %>
+        - DEVICE_ID=6 python3 <%= @args[0] %>
+        - DEVICE_ID=7 python3 <%= @args[0] %>
+        - DEVICE_ID=8 python3 <%= @args[0] %>
+  - nodes2:
+      layout: tile
+      panes:
+        - DEVICE_ID=9 python3 <%= @args[0] %>
+        - DEVICE_ID=10 python3 <%= @args[0] %>
+        - DEVICE_ID=11 python3 <%= @args[0] %>
+        - DEVICE_ID=12 python3 <%= @args[0] %>
+        - DEVICE_ID=13 python3 <%= @args[0] %>
+        - DEVICE_ID=14 python3 <%= @args[0] %>
+        - DEVICE_ID=15 python3 <%= @args[0] %>
+        - DEVICE_ID=16 python3 <%= @args[0] %>
