@@ -3,6 +3,7 @@ backports-abc==0.4
 backports.ssl-match-hostname==3.5.0.1
 certifi==2015.11.20.1
 Flask==0.10.1
+gunicorn==19.4.5
 itsdangerous==0.24
 Jinja2==2.8
 kazoo==2.2.1
