@@ -20,20 +20,20 @@ assignment = {
 MAXINT = 65535 
 
 # Initialize lock and Messager objects
-m = Messager()
-m.registerCallbackSync()
-m.start()
+# m = Messager()
+# m.registerCallbackSync()
+# m.start()
 
-# Get list of neighbors
-neighbors = list(m.getNeighbors().keys())
+# # Get list of neighbors
+# neighbors = list(m.getNeighbors().keys())
 
 ID = int(os.environ["DEVICE_ID"])
 # Get value assignment
-# my_val = assignment[str(ID)]
-my_val = float(np.random.randint(100))
-print("Starting val is: {0}".format(my_val))
+my_val = assignment[str(ID)]
+# my_val = float(np.random.randint(100))
+# print("Starting val is: {0}".format(my_val))
 
-def get_incidence_matrix(topo):
+def get_adjacency_matrix(topo):
 	n = len(topo)
 	mat = np.zeros([n,n],dtype=float)
 	for key in topo:
@@ -44,79 +44,37 @@ def get_incidence_matrix(topo):
 	return mat
 
 def generate_stochastic_matrix(topo):
+	'''
+		While easy to construct, suffers from poor convergence rate.
+		Averaging breaks down at large iteration counts.	
+'''
+	A = a^2
+	n,m = A.shape
 
-	# incidence_matrix = get_incidence_matrix(topo)
+	D = np.zeros((n,n),dtype=float)
+	for i in range(n):
+		D[i,i] = A[i,i]
 
-	# # n and m should be equal
-	# n,m = incidence_matrix.shape
+	# L is the Laplacian Matrix: D is the degree matrix, A is the adjacency matrix
+	L = D + a
 
-	# stochastic_matrix = np.random.rand(n,m)
+	W = np.zeros((n,m),dtype=float)
 
-	# # Element-wise multiplication 
-	# stochastic_matrix = np.multiply(incidence_matrix,stochastic_matrix)
+	for i in range(n):
+		a = sum(L[i,i:n])
+		b = sum(W[i,0:i])
+		factor = abs(a / (1-b))
 
+		row = L[i,i:n]
+		row = row / factor
 
-	# return stochastic_matrix
-	# # Square the matrix. This makes sure that no column has only 1 non-zero entry.
-	# stoc_mat = la.matrix_power(mat,2)
-	
-	# rows, columns = stoc_mat.shape
-	# # Normalizes each column
-	# for i in range(columns):
-	# 	stoc_mat[:,i] = stoc_maht[:,i] / sum(stoc_mat[:,i])
+		j = i
+		for value in row:
+			W[i,j] = value
+			W[j,i] = value
+			j += 1
 
-	# import pprint
-	# pp = pprint.PrettyPrinter()
-	# pp.pprint(stoc_mat)
-
-	# return stoc_mat
-
-	# Algorithm pulled from: http://cvxr.com/cvx/examples/graph_laplacian/html/mh.html
-	# unweighted Laplacian matrix
-
-	# Get back matrix of floats, where each entry is either 1 or 0
-	mat = get_incidence_matrix(topo)
-
-	Lunw = np.dot(mat,mat.T)
-	n,m = Lunw.shape
-	degrees = Lunw.diagonal()
-
-
-	diag_mat = np.zeros([n,m])
-	for i in range(len(degrees)):
-		diag_mat[i,i] = degrees[i]
-
-	mh_degs = np.dot(abs(mat).T,diag_mat)
-
-	a,b = mh_degs.shape
-	# Column vector of the maximum value in each row
-	max_vals = np.zeros([a,1],dtype=int)
-
-	for i in range(a):
-		max_vals[i] = max(mh_degs[i])
-
-	weights = np.divide(1,max_vals)
-	# Correct for division by zero
-	for i in range(a):
-		if weights[i] == float('inf'):
-			weights[i] = 0
-
-	stoc_mat = np.zeros([n,n],dtype=float)
-	for i in range(weights.size):
-		for j in range(n):
-			stoc_mat[j,i] = weights[i][0] * mat[j,i]
-
-
-	stoc_mat = mat
-
-	for i in range(len(stoc_mat)):
-		stoc_mat[i,i] = 0
-
-	stoc_mat = stoc_mat * .5
-
-	pp.pprint(stoc_mat)
-
-	return stoc_mat
+	return W
 
 def get_weights(m,ID):
 	# Get stochastic matrix 
@@ -146,24 +104,24 @@ x[ID-1] = my_val
 iterations = 20
 for i in range(iterations):
 	# All of the communication to neighbors
-	for recipient in m.getNeighbors().keys():
-		message = {
-			'value' : my_val,
-			'sync'  : i
-		}
-		# print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
-		m.sendMessage(recipient,message)
+	# for recipient in m.getNeighbors().keys():
+	# 	message = {
+	# 		'value' : my_val,
+	# 		'sync'  : i
+	# 	}
+	# 	# print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
+	# 	m.sendMessage(recipient,message)
 
-	# print("Waiting for all values to arrive")
-	m.waitForMessageFromAllNeighbors(i)
+	# # print("Waiting for all values to arrive")
+	# m.waitForMessageFromAllNeighbors(i)
 
-	# print("Got all values. Constructing x vector")
-	# Construct X
-	for message in m.sync[i]:
-		node = int(message['from'])
-		value = float(message['value'])
+	# # print("Got all values. Constructing x vector")
+	# # Construct X
+	# for message in m.sync[i]:
+	# 	node = int(message['from'])
+	# 	value = float(message['value'])
 
-		x[node-1] = value
+	# 	x[node-1] = value
 
 
 	# print("x is {0}".format(x))
