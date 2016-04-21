@@ -69,7 +69,7 @@ def read_data(datafile,target_column,ID,neighbors):
 def rss_gradient(w,X,y):
 
 	m = float(y.shape[0])
-	return np.dot(X.T,(np.dot(X,w) - y))
+	return (1/m) * np.dot(X.T,(np.dot(X,w) - y))
 
 def rss_error(w,X,y):
 	m = float(y.shape[0])
@@ -88,41 +88,75 @@ def update_learning_rate(learning_rate,old_w,new_w,X,y):
 
 if __name__ == '__main__':
 	
-
-
 	# Parse command line options
+	usage_string = 'Usage: python gradient_descent.py <data file> <target column number> <iterations>'
+
+	if len(sys.argv) != 4:
+		print(usage_string)
+		sys.exit(1)
+	else:
+		datafile = sys.argv[1]
+		target_column = int(sys.argv[2])
+		iterations = int(sys.argv[3])
 
 	# Initialize lock and Messager objects
-	# m = Messager()
-	# m.registerCallbackSync()
-	# neighbors = len(m.getNeighbors())
-	datafile, target_column, iterations = arg_handler(sys.argv[1:])
+	m = Messager()
+	m.registerCallbackSync()
+	neighbors = len(m.getNeighbors())
+	# datafile, target_column, iterations = arg_handler(sys.argv[1:])
 
-	neighbors = 6
+	# neighbors = 3
 	ID = int(os.environ["DEVICE_ID"])
 	w, X, y, num_samples = read_data(datafile,target_column,ID,neighbors)
 	learning_rate = .5
 
 
+	import csv
+	test = open("test.csv","w")
+	writer = csv.writer(test)
+
 	tolerance = float(.000001)
-	i = 0
+	# i = 0
 	# error_difference = 10000000
 	for i in range(iterations):
 		# old_error = rss_error(w,X,y)
 		# old_w = w
-		new_w = w - (learning_rate / num_samples) * rss_gradient(w,X,y)
+		new_w = w - (learning_rate) * rss_gradient(w,X,y)
 		learning_rate, w = update_learning_rate(learning_rate,w,new_w,X,y)
 
-		# Send w to all neighbors
+		# writer.writerow((i,w[0],w[1],w[2],w[3]))
+		print(i,w[0])
 
-		# Receive other nodes' w and average them
+
+		# Send w to all neighbors, receive other nodes' w 
+
+		for recipient in m.getNeighbors().keys():
+			message = {
+				'weights' : w,
+				'sync' : i
+			}
+			print("Sending weight vector from {0} to {1}".format(ID,recipient))
+			m.sendMessage(recipient,message)
+
+		m.waitForMessageFromAllNeighbors(i)
+
+		print("Now we can average")
+		# n,m = w.shape
+		# vector_sum = np.zeros((n,1),dtype=float)
+
+		# for message in m.sync[i]:
+		# 	vector_sum = vector_sum + message['weights']
+
+		# size = float(len(m.sync[i]))
+
+		# w = vector_sum * (size)
 
 
 		# if not np.array_equal(w,old_w):
 		# 	new_error = rss_error(w,X,y)
 		# 	error_difference = abs(new_error - old_error)
 
-		i += 1
-
-	print("{0}, {1}, {2}".format(i,w[0],new_error))
+		# i += 1
+	test.close()
+	# print("{0}, {1}, {2}".format(i,w[0],new_error))
 

@@ -9,4 +9,4 @@ echo $DEVICE_ID > /var/lib/zookeeper/myid
 service zookeeper start
 
 echo "Starting averaging"
-python3 /app/avg_async.py
+python3 /app/avg_sync.py
