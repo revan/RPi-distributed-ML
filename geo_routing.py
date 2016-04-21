@@ -1,8 +1,10 @@
 # Greedy Geo-Routing (async)
 import math
 import time
+from clustermessaging.LED import LED
 from clustermessaging.Messager import Messager
 
+led = LED()
 m = Messager()
 
 def forwardMessage(path=[]):
@@ -17,8 +19,10 @@ def forwardMessage(path=[]):
     path.append(m.getOwnName())
 
     if closest_neighbor == m.getOwnName():
+        led.setRedOn()
         print('I am the closest node! Path to me was %s' % '->'.join(path))
     else:
+        led.setGreenOn()
         print('sending message to %s' % closest_neighbor)
         m.sendMessage(closest_neighbor, {'path': path})
 
@@ -32,6 +36,7 @@ m.registerCallback(callback)
 m.start()
 
 if m.startIsMe():
+    led.setRedOn()
     time.sleep(1)
     forwardMessage()
 

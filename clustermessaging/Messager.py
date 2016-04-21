@@ -1,10 +1,9 @@
 import json
 import zmq
-import time
-import sys
 import os
 import pickle
 import threading
+import requests
 from collections import deque, defaultdict
 
 import logging
@@ -68,6 +67,12 @@ class Messager:
         self.streams = {}
 
     def _loadTopography(self):
+        if 'ON_DEVICE' in os.environ:
+            try:
+                r = requests.get('http://162.243.59.63:58982/topo.json')
+                self.topo = json.loads(r.text)
+            except:
+                pass
         with open('topo.json') as data_file:
             self.topo = json.load(data_file)
 
@@ -86,13 +91,13 @@ class Messager:
 
     @staticmethod
     def getOwnAddr():
-        # uncomment when running locally
-        # return 'tcp://localhost'
-
-        # oh god why
-        import socket
-        return 'tcp://%s' % [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for
-                             s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+        if 'ON_DEVICE' in os.environ:
+            # oh god why
+            import socket
+            return 'tcp://%s' % [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for
+                                 s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+        else:
+            return 'tcp://localhost'
 
     def getNeighbors(self):
         """
