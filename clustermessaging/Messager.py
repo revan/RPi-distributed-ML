@@ -1,6 +1,7 @@
 import json
 import zmq
 import os
+import random
 import pickle
 import threading
 import requests
@@ -105,6 +106,12 @@ class Messager:
         :return: the dict of names to sockets
         """
         return self.neighbors
+
+    def getRandomNeighbor(self):
+        """
+        :return: the name of a randomly selected neighbor.
+        """
+        return random.choice(list(self.getNeighbors().keys()))
 
     def getOwnLocation(self):
         return self.getLocation(self.getOwnName())

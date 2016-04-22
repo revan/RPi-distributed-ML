@@ -8,8 +8,8 @@ class LED:
     """
     def __init__(self):
         if LED._onDevice():
-            subprocess.call("echo gpio | sudo tee /sys/class/leds/led0/trigger", shell=True)
-            subprocess.call("echo gpio | sudo tee /sys/class/leds/led1/trigger", shell=True)
+            LED._init(0)
+            LED._init(1)
 
     def setGreenOn(self):
         if LED._onDevice():
@@ -42,5 +42,10 @@ class LED:
     @staticmethod
     def _set(led, value):
         command = "echo %d | sudo tee /sys/class/leds/led%d/brightness" % (value, led)
-        subprocess.call(command,shell=True)
+        subprocess.call(command, shell=True)
+
+    @staticmethod
+    def _init(led):
+        command = "echo gpio | sudo tee /sys/class/leds/led%d/trigger" % (led)
+        subprocess.call(command, shell=True)
 

@@ -37,7 +37,8 @@ while True:
     print('sleeping for %d seconds...' % sleep)
     time.sleep(sleep)
 
-    neighbor = random.choice(list(m.getNeighbors().keys()))
+    neighbor = m.getRandomNeighbor()
+
     message = {
         'num': m.mynum,
         'rsvp': True

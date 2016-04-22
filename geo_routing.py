@@ -7,7 +7,10 @@ from clustermessaging.Messager import Messager
 led = LED()
 m = Messager()
 
-def forwardMessage(path=[]):
+def forwardMessage(path=None):
+    if not path:
+        path = []
+
     def distanceToTarget(coords):
         target = m.getTarget()
         return math.sqrt((target[0] - coords[0]) ** 2 + (target[1] - coords[1]) ** 2)

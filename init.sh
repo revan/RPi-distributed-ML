@@ -8,5 +8,5 @@ service zookeeper stop
 echo $DEVICE_ID > /var/lib/zookeeper/myid
 service zookeeper start
 
-echo "Starting averaging"
-python3 /app/avg_sync.py
+echo "Starting game of life"
+python3 /app/life.py
