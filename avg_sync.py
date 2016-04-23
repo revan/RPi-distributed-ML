@@ -1,37 +1,15 @@
 import numpy as np
 import time
 from threading import Lock
-import random
 from clustermessaging.Messager import Messager
 import os
-import csv
-from numpy import linalg as la
-import pprint
-
-pp = pprint.PrettyPrinter()
+import sys
 
 assignment = {
-	"1": 6,
-	"2": 9,
-	"3": 12
+	"1": 5,
+	"2": 10,
+	"3": 29
 }
-
-# Used to deal with infinity values
-MAXINT = 65535 
-
-# Initialize lock and Messager objects
-# m = Messager()
-# m.registerCallbackSync()
-# m.start()
-
-# # Get list of neighbors
-# neighbors = list(m.getNeighbors().keys())
-
-ID = int(os.environ["DEVICE_ID"])
-# Get value assignment
-my_val = assignment[str(ID)]
-# my_val = float(np.random.randint(100))
-# print("Starting val is: {0}".format(my_val))
 
 def get_adjacency_matrix(topo):
 	n = len(topo)
@@ -44,41 +22,29 @@ def get_adjacency_matrix(topo):
 	return mat
 
 def generate_stochastic_matrix(topo):
-	'''
-		While easy to construct, suffers from poor convergence rate.
-		Averaging breaks down at large iteration counts.	
-'''
-	A = a^2
-	n,m = A.shape
+	adj = get_adjacency_matrix(topo)
+	n,m = adj.shape # The matrix should be square, implying that n = m
 
-	D = np.zeros((n,n),dtype=float)
+	squared = np.dot(adj,adj)
+	degrees = list()
 	for i in range(n):
-		D[i,i] = A[i,i]
+		degrees.append(squared[i][i])
 
-	# L is the Laplacian Matrix: D is the degree matrix, A is the adjacency matrix
-	L = D + a
+	d_max = max(degrees)
 
-	W = np.zeros((n,m),dtype=float)
-
+	stoc_mat = np.zeros((n,m))
 	for i in range(n):
-		a = sum(L[i,i:n])
-		b = sum(W[i,0:i])
-		factor = abs(a / (1-b))
+		for j in range(m):
+			if i != j and adj[i][j] == 1:
+				stoc_mat[i][j] = float(1/(d_max + 1))
+			elif i == j:
+				stoc_mat[i][j] = 1.0 - (degrees[i] / (d_max+1))
 
-		row = L[i,i:n]
-		row = row / factor
+	return stoc_mat
 
-		j = i
-		for value in row:
-			W[i,j] = value
-			W[j,i] = value
-			j += 1
-
-	return W
-
-def get_weights(m,ID):
+def get_weights(topo,ID):
 	# Get stochastic matrix 
-	W = generate_stochastic_matrix(m.topo)
+	W = generate_stochastic_matrix(topo)
 	print("W is {0}".format(W))
 
 	# Get own weights
@@ -86,50 +52,50 @@ def get_weights(m,ID):
 
 	return w
 
-w = get_weights(m,ID)
-# print("w is {0}".format(w))
+if __name__ == "__main__":
 
-# Generate x vector
-nodes = len(m.topo)
-x = np.zeros([nodes,1],dtype=float)
-# print("x is {0}".format(x))
-
-# Insert own value
-x[ID-1] = my_val
-
-# f = open("{0}.csv".format(ID),'w')
-# writer = csv.writer(f)
+	# Initialize lock and Messager objects
+	m = Messager()
+	# m.registerCallbackSync()
+	m.start()
 
 
-iterations = 20
-for i in range(iterations):
-	# All of the communication to neighbors
-	# for recipient in m.getNeighbors().keys():
-	# 	message = {
-	# 		'value' : my_val,
-	# 		'sync'  : i
-	# 	}
-	# 	# print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
-	# 	m.sendMessage(recipient,message)
+	# Get necessary values
+	ID = int(os.environ["DEVICE_ID"])
+	my_val = assignment[str(ID)]
+	w = get_weights(m.topo,ID)
 
-	# # print("Waiting for all values to arrive")
-	# m.waitForMessageFromAllNeighbors(i)
-
-	# # print("Got all values. Constructing x vector")
-	# # Construct X
-	# for message in m.sync[i]:
-	# 	node = int(message['from'])
-	# 	value = float(message['value'])
-
-	# 	x[node-1] = value
+	# Create x vector
+	nodes = len(assignment)
+	x = np.zeros([nodes,1],dtype=float)
+	x[ID-1] = my_val # Insert own value
 
 
-	# print("x is {0}".format(x))
-	my_val = np.dot(w,x)[0]
-	print("my_val is {0}".format(my_val))
-	# writer.writerow((i,my_val))
+	iterations = 20
+	for i in range(iterations):
+		# All of the communication to neighbors
+		for recipient in m.getNeighbors().keys():
+			message = {
+				'value' : my_val,
+				'sync'  : i
+			}
+			# print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
+			m.sendMessage(recipient,message)
 
-# f.close()
+		# print("Waiting for all values to arrive")
+		m.waitForMessageFromAllNeighbors(i)
+
+		# print("Got all values. Constructing x vector")
+		# Construct X
+		for message in m.sync[i]:
+			node = int(message['from'])
+			value = float(message['value'])
+
+			x[node-1] = value
+
+		my_val = np.dot(w,x)[0]
+		print("my_val is {0}".format(my_val))
+
 
 
 
