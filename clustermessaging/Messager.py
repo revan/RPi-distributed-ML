@@ -3,6 +3,7 @@ import zmq
 import os
 import random
 import pickle
+import time
 import threading
 import requests
 from collections import deque, defaultdict
@@ -17,7 +18,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 class Messager:
     def __init__(self):
-        self.loop = ioloop.IOLoop.instance()
+        self.loop = ioloop.IOLoop.current()
         # load topography from file
         self._loadTopography()
 
@@ -48,7 +49,7 @@ class Messager:
             (addr, _) = self.zk.get("/addr/%s" % name)
             self.addresses[name] = addr.decode("UTF-8")
 
-        print('Got all neighboring addresses.')
+        print('All neighbors checked in to Zookeeper.')
 
         # create PAIR connections for each network link
         self.neighbors = {}
@@ -167,9 +168,7 @@ class Messager:
         self.flush() # if we don't flush we might somehow block before actually sending messages!
         self.sync_cv.acquire()
         while True:
-            nameset = set()
-            for message in self.sync[sync]:
-                nameset.add(message['from'])
+            nameset = {message['from'] for message in self.sync[sync]}
             if len(nameset) >= len(self.neighbors):
                 break
 
@@ -181,24 +180,21 @@ class Messager:
         Registers a callback for synchronous algorithms, which will
         queue up a message based on its "sync" field.
         Put the iteration number in the field, for example.
-
-        Spawns a new thread to do this, so we don't block the ioloop.
         """
         def callbacksync(message, name):
+            self.flush()
             message['from'] = name
 
+            # print('callbacksync blocking...')
             self.sync_cv.acquire()
             self.sync[message['sync']].append(message)
             self.sync_cv.notifyAll()
             self.sync_cv.release()
-
-        def spawner(message, name):
-            thread = threading.Thread(target=callbacksync, args=(message,name))
-            thread.start()
+            # print('callbacksync unblocking')
 
         for name in self.neighbors:
             if name is not self.getOwnName():
-                self.registerCallbackIndividual(spawner, name)
+                self.registerCallbackIndividual(callbacksync, name)
 
     def registerCallbackIndividual(self, callbackFunction, name):
         """
@@ -233,7 +229,10 @@ class Messager:
         """
         Starts the event loop in a background thread. Call this once, after having set the callback.
         """
+
+        # ioloop.install()
         threading.Thread(target=self.loop.start).start()
+        time.sleep(1)
 
     def stop(self):
         self.loop.stop()

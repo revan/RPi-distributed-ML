@@ -1,9 +1,7 @@
 import numpy as np
 import time
-from threading import Lock
 from clustermessaging.Messager import Messager
 import os
-import sys
 
 assignment = {
 	"1": 5,
@@ -43,7 +41,7 @@ def generate_stochastic_matrix(topo):
 	return stoc_mat
 
 def get_weights(topo,ID):
-	# Get stochastic matrix 
+	# Get stochastic matrix
 	W = generate_stochastic_matrix(topo)
 	print("W is {0}".format(W))
 
@@ -56,7 +54,7 @@ if __name__ == "__main__":
 
 	# Initialize lock and Messager objects
 	m = Messager()
-	# m.registerCallbackSync()
+	m.registerCallbackSync()
 	m.start()
 
 
@@ -73,19 +71,20 @@ if __name__ == "__main__":
 
 	iterations = 20
 	for i in range(iterations):
+		time.sleep(1)
 		# All of the communication to neighbors
 		for recipient in m.getNeighbors().keys():
 			message = {
 				'value' : my_val,
 				'sync'  : i
 			}
-			# print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
+			print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
 			m.sendMessage(recipient,message)
 
-		# print("Waiting for all values to arrive")
+		print("Waiting for all values to arrive")
 		m.waitForMessageFromAllNeighbors(i)
 
-		# print("Got all values. Constructing x vector")
+		print("Got all values. Constructing x vector")
 		# Construct X
 		for message in m.sync[i]:
 			node = int(message['from'])

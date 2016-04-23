@@ -10,13 +10,15 @@ print('My num: %d' % m.mynum)
 m.registerCallbackSync()
 m.start()
 
-for iter in range(3):
+for iter in range(20):
+    print('iter %d' % iter)
     for neighbor in m.getNeighbors().keys():
         message = {
             'num': m.mynum,
             'sync': iter
         }
 
+        print('sending')
         m.sendMessage(neighbor, message)
         print('sent to %s' % neighbor)
 
