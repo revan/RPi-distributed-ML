@@ -73,6 +73,7 @@ class Messager:
             try:
                 r = requests.get('http://162.243.59.63:58982/topo.json')
                 self.topo = json.loads(r.text)
+                return
             except:
                 pass
         with open('topo.json') as data_file:
