@@ -1,19 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>WiFi Routing Demo</title>
-    <link href="https://fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="static/css/normalize.css">
-    <link rel="stylesheet" href="static/css/skeleton.css">
-</head>
-<body>
-    <a href="/"><div class="button" id="button-wired">Switch to Wired</div></a>
+{% extends "base.html" %}
+{% block head %}WiFi {{ super() }}{% endblock %}
+{% block body %}
     <br>
     <div class="button button-primary" id="button-save">Save</div>
-    <div class="button" id="button-random">Random</div>
-    <div class="button" id="button-grid">Grid</div>
-    <div class="button" id="button-complete">Complete</div>
     From:
     <input id="from" type="number" min="1" max="16" value="1"/>
     <br>
@@ -22,8 +11,6 @@
     <div id="notify"/>
 
 
-    <script   src="https://code.jquery.com/jquery-2.2.3.min.js"   integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="   crossorigin="anonymous"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.5.0/fabric.min.js" crossorigin="anonymous"></script>
     <script src="static/wifi.js"></script>
-</body>
-</html>
+{% endblock %}

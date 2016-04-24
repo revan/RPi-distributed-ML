@@ -2,11 +2,12 @@ import json
 from flask import Flask, render_template, request
 app = Flask(__name__)
 
+version = 0
 topology = {i: [] for i in range(1, 16)}
 
 @app.route('/')
 def main():
-    return render_template('routing.html')
+    return render_template('wired.html')
 
 @app.route('/wifi')
 def wifi():
@@ -16,7 +17,10 @@ def wifi():
 def topo():
     if request.method == 'POST':
         global topology
+        global version
         topology = request.get_json(force=True)
+        topology['version'] = version
+        version += 1
         print(topology)
 
     return json.dumps(topology)

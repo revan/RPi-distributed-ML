@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<link href="https://fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="static/css/normalize.css">
+    <link rel="stylesheet" href="static/css/skeleton.css">
+    <title>{% block title %}Demo{% endblock %}</title>
+</head>
+<body>
+	<a href="/wifi"><div class="button" id="button-wifi">WiFi</div></a>
+	<a href="/"><div class="button" id="button-wired">Wired</div></a>
+	<a href="/topo.json" class="button">View JSON</a>
+
+	<script   src="https://code.jquery.com/jquery-2.2.3.min.js"   integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="   crossorigin="anonymous"></script>
+
+	{% block body %}{% endblock %}
+
+</body>
+
+</html>
