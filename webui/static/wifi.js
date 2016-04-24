@@ -57,34 +57,6 @@ var init_page = function() {
     target.hasControls = false;
     canvas.add(target);
 
-    $('#button-grid').unbind('click').click(function() {
-        // edges = "";
-        // for (var h = 0; h < height; h++) {
-        //     for (var w = 0; w < width; w++) {
-        //         if (w < width - 1) {
-        //             addLinkToNetwork(h * height + w + 1, h * height + w + 2);
-        //             edges += (h * height + w + 1) + "--" + (h * height + w + 2) + ";"
-        //         }
-        //         if (h < height - 1) {
-        //             addLinkToNetwork(h * height + w + 1, (h + 1) * height + w + 1);
-        //             edges += (h * height + w + 1) + "--" + ((h + 1) * height + w + 1) + ";";
-        //         }
-        //     }
-        // }
-        // updateGraph();
-    });
-
-    $('#button-complete').unbind('click').click(function() {
-        // edges = "";
-        // for (var i = 1; i < height * width; i++) {
-        //     for (var k = i + 1; k <= height * width; k++) {
-        //         addLinkToNetwork(i, k);
-        //         edges += i + "--" + k + ";";
-        //     }
-        // }
-        // updateGraph();
-    });
-
     $('#button-save').unbind('click').click(function() {
         var i;
         var network = {};

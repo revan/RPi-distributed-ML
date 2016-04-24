@@ -11,11 +11,14 @@ var updateGraph = function() {
 
     $("svg").remove();
 
+    network.geo = {};
     var i = 1;
     var nodes = "";
     for (var h = height - 1; h >= 0; h--) {
         for (var w = 0; w < width; w++) {
-            nodes += i++ + ' [pos="' + w + ',' + h + '!"];';
+            nodes += i + ' [pos="' + w + ',' + h + '!"];';
+            network.geo[i] = [w,h];
+            i++
         }
     }
 
@@ -71,7 +74,7 @@ var updateGraph = function() {
 
     $('#button-save').unbind('click').click(function() {
         network.from = +$('#from').val();
-        network.to = +$('#to').val();
+        network.geo.target = network.geo[+$('#to').val()];
 
         var str = JSON.stringify(network);
         console.log(str);
