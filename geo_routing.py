@@ -3,6 +3,8 @@ import math
 import time
 from clustermessaging.LED import LED
 from clustermessaging.Messager import Messager
+import kazoo.recipe.watchers
+from kazoo.protocol.states import EventType
 
 led = LED()
 m = Messager()
@@ -24,9 +26,12 @@ def forwardMessage(path=None):
     if closest_neighbor == m.getOwnName():
         led.setRedOn()
         print('I am the closest node! Path to me was %s' % '->'.join(path))
+        time.sleep(3)
+        m.zk.set("/routing", str(m.topo['version']).encode())
     else:
         led.setGreenOn()
         print('sending message to %s' % closest_neighbor)
+        time.sleep(1)
         m.sendMessage(closest_neighbor, {'path': path})
 
 
@@ -38,10 +43,26 @@ def callback(message, name):
 m.registerCallback(callback)
 m.start()
 
-if m.startIsMe():
-    led.setRedOn()
-    time.sleep(1)
-    forwardMessage()
+
+def init():
+    led.setGreenOff()
+    led.setRedOff()
+
+    if m.startIsMe():
+        led.setRedOn()
+        m.zk.ensure_path("/routing")
+        time.sleep(1)
+        forwardMessage()
+
+
+@m.zk.DataWatch('/routing')
+def zkCallback(data, stat, event):
+    if event and event.type == EventType.CHANGED and data and data.decode() != m.topo['version']:
+        print('Reloading topology!')
+        m._loadTopology()
+        init()
+
+init()
 
 while True:
     time.sleep(1)

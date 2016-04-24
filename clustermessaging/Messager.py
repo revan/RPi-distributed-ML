@@ -20,7 +20,7 @@ class Messager:
     def __init__(self):
         self.loop = ioloop.IOLoop.current()
         # load topography from file
-        self._loadTopography()
+        self._loadTopology()
 
         self.context = zmq.Context()
 
@@ -32,9 +32,9 @@ class Messager:
         self.zk.create(("/addr/%s" % self.getOwnName()), bytes(self.getOwnAddr(), "UTF-8"))
 
         # get IP addresses from zookeeper
-        neighbor_names = self.topo[self.getOwnName()]
+        all_names = {k for k in self.topo.keys() if k.isnumeric() and k != self.getOwnName()}
         self.addresses = {}
-        for name in neighbor_names:
+        for name in all_names:
             cv = threading.Condition()
             cv.acquire()
 
@@ -49,11 +49,12 @@ class Messager:
             (addr, _) = self.zk.get("/addr/%s" % name)
             self.addresses[name] = addr.decode("UTF-8")
 
-        print('All neighbors checked in to Zookeeper.')
+        print('All nodes checked in to Zookeeper.')
 
         # create PAIR connections for each network link
         self.neighbors = {}
-        for name in neighbor_names:
+        self._allNodes = {}
+        for name in all_names:
             # lower device establishes connection to avoid duplicate
             socket = self.context.socket(zmq.PAIR)
             if int(name) > int(self.getOwnName()):
@@ -61,14 +62,16 @@ class Messager:
             else:
                 socket.bind('tcp://*:%d' % self._findPortFor(name))
 
-            self.neighbors[name] = socket
+            self._allNodes[name] = socket
+            if int(name) in self.topo[self.getOwnName()]:
+                self.neighbors[name] = socket
 
         self.sync = defaultdict(deque)
         self.sync_cv = threading.Condition()
 
         self.streams = {}
 
-    def _loadTopography(self):
+    def _loadTopology(self):
         if 'ON_DEVICE' in os.environ:
             try:
                 r = requests.get('http://162.243.59.63:58982/topo.json')
