@@ -17,7 +17,7 @@ var updateGraph = function() {
     for (var h = height - 1; h >= 0; h--) {
         for (var w = 0; w < width; w++) {
             nodes += i + ' [pos="' + w + ',' + h + '!"];';
-            network.geo[i] = [w,h];
+            network.geo[i+""] = [w,h];
             i++
         }
     }
@@ -25,8 +25,8 @@ var updateGraph = function() {
     document.body.innerHTML += Viz(config + nodes + edges + "}");
 
     var addLinkToNetwork = function(node1, node2) {
-        network[node1].push(+node2);
-        network[node2].push(+node1);
+        network[node1+""].push(+node2+"");
+        network[node2+""].push(+node1+"");
     };
 
     var first = null;
@@ -73,7 +73,7 @@ var updateGraph = function() {
     });
 
     $('#button-save').unbind('click').click(function() {
-        network.from = +$('#from').val();
+        network.from = (+$('#from').val())+"";
         network.geo.target = network.geo[+$('#to').val()];
 
         var str = JSON.stringify(network);

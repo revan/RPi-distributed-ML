@@ -62,7 +62,7 @@ var init_page = function() {
         var network = {};
 
         for (i = 1; i <= num_nodes; i++) {
-            network[i] = [];
+            network[i+""] = [];
         }
 
         network.geo = {'target': [target.left, target.top]};
@@ -72,15 +72,15 @@ var init_page = function() {
         };
 
         for (i = 0; i < num_nodes; i++) {
-            network.geo[i+1] = [groups[i].left + signal_radius, groups[i].top + signal_radius];
+            network.geo[(i+1)+""] = [groups[i].left + signal_radius, groups[i].top + signal_radius];
             for (var k = 0; k < num_nodes; k++) {
                 if (i != k && distance(groups[i], groups[k]) <= signal_radius) {
-                    network[k+1].push(i+1);
+                    network[(k+1)+""].push((i+1)+"");
                 }
             }
         }
 
-        network.from = +$('#from').val();
+        network.from = (+$('#from').val())+"";
 
         var str = JSON.stringify(network);
         console.log(str);

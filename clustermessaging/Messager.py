@@ -63,7 +63,7 @@ class Messager:
                 socket.bind('tcp://*:%d' % self._findPortFor(name))
 
             self._allNodes[name] = socket
-            if name in map(lambda x: str(x), self.topo[self.getOwnName()]):
+            if name in self.topo[self.getOwnName()]:
                 self.neighbors[name] = socket
 
         self.sync = defaultdict(deque)
@@ -81,6 +81,10 @@ class Messager:
                 pass
         with open('topo.json') as data_file:
             self.topo = json.load(data_file)
+
+    def reloadTopology(self):
+        self._loadTopology()
+        self.neighbors = {k: v for (k,v) in self._allNodes.items() if k in self.topo[self.getOwnName()]}
 
     def _findPortFor(self, name):
         a = min(int(self.getOwnName()), int(name))
