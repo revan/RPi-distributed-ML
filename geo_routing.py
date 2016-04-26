@@ -59,7 +59,7 @@ def init():
 def zkCallback(data, stat, event):
     if event and event.type == EventType.CHANGED and data and data.decode() != m.topo['version']:
         print('Reloading topology!')
-        m._loadTopology()
+        m.reloadTopology()
         init()
 
 init()
