@@ -4,11 +4,12 @@ from clustermessaging.Messager import Messager
 import os
 import sys
 import csv
+import pprint
 
 assignment = {
-	"1": 5,
-	"2": 10,
-	"3": 29
+	"1": 94,
+	"2": 55,
+	"3": 66
 }
 
 def get_adjacency_matrix(topo):
@@ -45,7 +46,6 @@ def generate_stochastic_matrix(topo):
 def get_weights(topo,ID):
 	# Get stochastic matrix
 	W = generate_stochastic_matrix(topo)
-	print("W is {0}".format(W))
 
 	# Get own weights
 	w = W[ID-1]
@@ -54,11 +54,20 @@ def get_weights(topo,ID):
 
 if __name__ == "__main__":
 
+	# Parse command line options
+	# usage_string = 'Usage: python avg_sync.py <assignment file> <iterations>'
+
+	# if len(sys.argv) != 4:
+	# 	print(usage_string)
+	# 	sys.exit(1)
+	# else:
+	# 	assignment = json.load(open(sys.argv[1]))
+	# 	iterations = sys.argv[2]
+
 	# Initialize lock and Messager objects
 	m = Messager()
 	m.registerCallbackSync()
 	m.start()
-
 
 	# Get necessary values
 	ID = int(os.environ["DEVICE_ID"])
@@ -70,23 +79,20 @@ if __name__ == "__main__":
 	x = np.zeros(nodes,dtype=float)
 	x[ID-1] = my_val # Insert own value
 
-	print("About to iterate")
-	iterations = 20
+	iterations = 10
 	for i in range(iterations):
-		time.sleep(1)
+		# time.sleep(1)
 		# All of the communication to neighbors
+
 		for recipient in m.getNeighbors().keys():
 			message = {
 				'value' : my_val,
 				'sync'  : i
 			}
-			print("Sending {0} to {1} from {2}".format(my_val,recipient,ID))
 			m.sendMessage(recipient,message)
 
-		print("Waiting for all values to arrive")
 		m.waitForMessageFromAllNeighbors(i)
 
-		print("Got all values. Constructing x vector")
 		# Construct X
 		for message in m.sync[i]:
 			node = int(message['from'])
@@ -96,6 +102,8 @@ if __name__ == "__main__":
 
 		my_val = np.dot(w,x)
 		x[ID-1] = my_val
+		print(my_val)
+
 
 	sys.exit(0)
 

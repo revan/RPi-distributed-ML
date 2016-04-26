@@ -6,6 +6,7 @@ import pickle
 import time
 import threading
 import requests
+import pprint
 from collections import deque, defaultdict
 
 import logging
@@ -15,6 +16,7 @@ from kazoo.client import KazooClient
 
 from zmq.eventloop import ioloop, zmqstream
 
+pp = pprint.PrettyPrinter()
 
 class Messager:
     def __init__(self):
@@ -38,19 +40,23 @@ class Messager:
             cv = threading.Condition()
             cv.acquire()
 
+            # print("Acquired condition variable")
             def wakeup_watch(stat):
                 cv.acquire()
                 cv.notify()
                 cv.release()
 
+            # print("Checking to see if we exist")
             ex = self.zk.exists(("/addr/%s" % name), wakeup_watch)
             if not ex:
                 cv.wait()
             (addr, _) = self.zk.get("/addr/%s" % name)
             self.addresses[name] = addr.decode("UTF-8")
 
+
         print('All nodes checked in to Zookeeper.')
 
+        # pp.pprint(all_names)
         # create PAIR connections for each network link
         self.neighbors = {}
         self._allNodes = {}
@@ -63,9 +69,10 @@ class Messager:
                 socket.bind('tcp://*:%d' % self._findPortFor(name))
 
             self._allNodes[name] = socket
-            if int(name) in self.topo[self.getOwnName()]:
+            if name in self.topo[self.getOwnName()]:
                 self.neighbors[name] = socket
 
+        # pp.pprint(self.neighbors)
         self.sync = defaultdict(deque)
         self.sync_cv = threading.Condition()
 
