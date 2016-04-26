@@ -1,11 +1,11 @@
 name: k3
-root: ~/repo/capstone
+root: ~/
 
 pre:
   - echo "rmr /addr" | zkCli.sh
   - ln -sf k3.json topo.json
 
-pre_window: source env/bin/activate
+pre_window: source ~/envs/capstone/bin/activate
 
 windows:
   - nodes:

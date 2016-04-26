@@ -2,6 +2,8 @@ import numpy as np
 import time
 from clustermessaging.Messager import Messager
 import os
+import sys
+import csv
 
 assignment = {
 	"1": 5,
@@ -65,10 +67,10 @@ if __name__ == "__main__":
 
 	# Create x vector
 	nodes = len(assignment)
-	x = np.zeros([nodes,1],dtype=float)
+	x = np.zeros(nodes,dtype=float)
 	x[ID-1] = my_val # Insert own value
 
-
+	print("About to iterate")
 	iterations = 20
 	for i in range(iterations):
 		time.sleep(1)
@@ -92,9 +94,9 @@ if __name__ == "__main__":
 
 			x[node-1] = value
 
-		my_val = np.dot(w,x)[0]
-		print("my_val is {0}".format(my_val))
+		my_val = np.dot(w,x)
+		x[ID-1] = my_val
 
-
+	sys.exit(0)
 
 

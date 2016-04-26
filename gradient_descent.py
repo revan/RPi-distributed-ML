@@ -13,35 +13,7 @@ import math
 MAXINT = 65535 
 
 
-def arg_handler(argv):
-
-	try:
-		opts, args = getopt.getopt(argv,"hd:t:i:",["datafile=","target="])
-	except getopt.GetoptError:
-		usage_string = ('Usage: python gradient_descent.py'
-						' -d <data file>'
-						' -t <target column number>'
-						' -i <iterations>')
-		sys.exit(1)
-
-	datafile = ""
-	target_column = -1
-	iterations = -1
-
-	for opt, arg in opts:
-		if opt == '-h':
-			print('Usage: python gradient_descent.py -d <data file> -t <target column number> -l <learning rate>')
-			sys.exit(0)	
-		elif opt == '-d':
-			datafile = arg
-		elif opt == '-t':
-			target_column = int(arg)
-		elif opt == '-i':
-			iterations = int(arg)
-
-	return datafile, target_column, iterations
-
-def read_data(datafile,target_column,ID,neighbors):
+def read_data(datafile,target_column,ID,nodes):
 	# Figure out how much data to load
 
 	# Load data
@@ -50,10 +22,13 @@ def read_data(datafile,target_column,ID,neighbors):
 	y = data[:,target_column]
 	y = y.reshape(y.shape[0],1)
 	X = np.delete(data,target_column,1)
-	np.insert(X,0,1,axis=1) # Accounting for the bias term
+	X = np.insert(X,0,1,axis=1) # Accounting for the bias term
  	
 	n,m = X.shape # rows and columns of X. Corresponds to training samples and parameters respectively
-	division = math.floor(n/neighbors)
+	if nodes == 0:
+		division = n
+	else:
+		division = math.floor(n/nodes)
 
 	# This node's portion of the data
 	X = X[(division*(ID-1)):(division*(ID)),:]
@@ -61,7 +36,7 @@ def read_data(datafile,target_column,ID,neighbors):
 	y = y[(division*(ID-1)):(division*(ID)),:]
 	# Initial weight vector with random weights. 
 	# We will learn the best weights with the algorithm
-	w = np.zeros((m,1),dtype=float)
+	w = .25 * np.ones((m,1),dtype=float)
 	num_samples = float(X.shape[0])
 
 	return w,X,y,num_samples
@@ -102,30 +77,35 @@ if __name__ == '__main__':
 	# Initialize lock and Messager objects
 	m = Messager()
 	m.registerCallbackSync()
-	neighbors = len(m.getNeighbors())
+	m.start()
+	nodes = len(m.getNeighbors()) + 1
+	# neighbors = 0
 	# datafile, target_column, iterations = arg_handler(sys.argv[1:])
 
 	# neighbors = 3
 	ID = int(os.environ["DEVICE_ID"])
-	w, X, y, num_samples = read_data(datafile,target_column,ID,neighbors)
+	w, X, y, num_samples = read_data(datafile,target_column,ID,nodes)
 	learning_rate = .5
 
 
 	import csv
-	test = open("test.csv","w")
+	test = open("test_val/test_{0}.csv".format(ID),"w")
 	writer = csv.writer(test)
 
 	tolerance = float(.000001)
 	# i = 0
-	# error_difference = 10000000
+	# error_difference = 10000000 	
 	for i in range(iterations):
 		# old_error = rss_error(w,X,y)
 		# old_w = w
 		new_w = w - (learning_rate) * rss_gradient(w,X,y)
+		# print("gradient = {0}".format(rss_gradient(w,X,y)))
 		learning_rate, w = update_learning_rate(learning_rate,w,new_w,X,y)
+		# print("second w = {0}\n".format(w))
 
 		# writer.writerow((i,w[0],w[1],w[2],w[3]))
-		print(i,w[0])
+		# print(i,w[0])
+		writer.writerow(tuple([i,rss_error(w,X,y)]))
 
 
 		# Send w to all neighbors, receive other nodes' w 
@@ -135,28 +115,22 @@ if __name__ == '__main__':
 				'weights' : w,
 				'sync' : i
 			}
-			print("Sending weight vector from {0} to {1}".format(ID,recipient))
+			# print("Sending weight vector from {0} to {1}".format(ID,recipient))
 			m.sendMessage(recipient,message)
 
 		m.waitForMessageFromAllNeighbors(i)
 
 		print("Now we can average")
-		# n,m = w.shape
-		# vector_sum = np.zeros((n,1),dtype=float)
+		a,b = w.shape
+		vector_sum = np.zeros((a,1),dtype=float)
 
-		# for message in m.sync[i]:
-		# 	vector_sum = vector_sum + message['weights']
+		for message in m.sync[i]:
+			vector_sum = vector_sum + message['weights']
 
-		# size = float(len(m.sync[i]))
+		size = float(len(m.sync[i]))
 
-		# w = vector_sum * (size)
-
-
-		# if not np.array_equal(w,old_w):
-		# 	new_error = rss_error(w,X,y)
-		# 	error_difference = abs(new_error - old_error)
-
-		# i += 1
+		w = vector_sum * (1.0 / size)
+		print(w)
+		
 	test.close()
-	# print("{0}, {1}, {2}".format(i,w[0],new_error))
 
