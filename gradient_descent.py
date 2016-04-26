@@ -8,6 +8,7 @@ import sys
 import getopt
 import csv
 import math
+import pprint
 
 # Used to deal with infinity values
 MAXINT = 65535 
@@ -64,50 +65,31 @@ def update_learning_rate(learning_rate,old_w,new_w,X,y):
 if __name__ == '__main__':
 	
 	# Parse command line options
-	usage_string = 'Usage: python gradient_descent.py <data file> <target column number> <iterations>'
+	pp = pprint.PrettyPrinter()
 
-	if len(sys.argv) != 4:
-		print(usage_string)
-		sys.exit(1)
-	else:
-		datafile = sys.argv[1]
-		target_column = int(sys.argv[2])
-		iterations = int(sys.argv[3])
+	datafile = "data/iris_mod.csv"
+	target_column = 4
+	iterations = 100
 
 	# Initialize lock and Messager objects
 	m = Messager()
 	m.registerCallbackSync()
 	m.start()
 	nodes = len(m.getNeighbors()) + 1
-	# neighbors = 0
-	# datafile, target_column, iterations = arg_handler(sys.argv[1:])
 
-	# neighbors = 3
 	ID = int(os.environ["DEVICE_ID"])
 	w, X, y, num_samples = read_data(datafile,target_column,ID,nodes)
 	learning_rate = .5
-
 
 	import csv
 	test = open("test_val/test_{0}.csv".format(ID),"w")
 	writer = csv.writer(test)
 
-	tolerance = float(.000001)
-	# i = 0
-	# error_difference = 10000000 	
 	for i in range(iterations):
-		# old_error = rss_error(w,X,y)
-		# old_w = w
 		new_w = w - (learning_rate) * rss_gradient(w,X,y)
-		# print("gradient = {0}".format(rss_gradient(w,X,y)))
 		learning_rate, w = update_learning_rate(learning_rate,w,new_w,X,y)
-		# print("second w = {0}\n".format(w))
 
-		# writer.writerow((i,w[0],w[1],w[2],w[3]))
-		# print(i,w[0])
 		writer.writerow(tuple([i,rss_error(w,X,y)]))
-
-
 		# Send w to all neighbors, receive other nodes' w 
 
 		for recipient in m.getNeighbors().keys():
@@ -115,12 +97,10 @@ if __name__ == '__main__':
 				'weights' : w,
 				'sync' : i
 			}
-			# print("Sending weight vector from {0} to {1}".format(ID,recipient))
 			m.sendMessage(recipient,message)
 
 		m.waitForMessageFromAllNeighbors(i)
 
-		print("Now we can average")
 		a,b = w.shape
 		vector_sum = np.zeros((a,1),dtype=float)
 
@@ -130,7 +110,7 @@ if __name__ == '__main__':
 		size = float(len(m.sync[i]))
 
 		w = vector_sum * (1.0 / size)
-		print(w)
-		
-	test.close()
+		w_error = rss_error(w,X,y)
+		print(w_error)
 
+	test.close()
