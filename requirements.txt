@@ -14,3 +14,6 @@ requests==2.9.1
 singledispatch==3.4.0.3
 six==1.10.0
 Werkzeug==0.11.5
+matplotlib==1.5.1
+scipy==0.17.0
+sklearn==0.17.1
