@@ -66,7 +66,7 @@ class Messager:
             if name in self.topo[self.getOwnName()]:
                 self.neighbors[name] = socket
 
-        self.sync = defaultdict(deque)
+        self.resetSyncInbox()
         self.sync_cv = threading.Condition()
 
         self.streams = {}
@@ -204,6 +204,9 @@ class Messager:
         for name in self.neighbors:
             if name is not self.getOwnName():
                 self.registerCallbackIndividual(callbacksync, name)
+
+    def resetSyncInbox(self):
+        self.sync = defaultdict(deque)
 
     def registerCallbackIndividual(self, callbackFunction, name):
         """

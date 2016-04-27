@@ -6,8 +6,8 @@ from flask import Flask, render_template, request, Response
 app = Flask(__name__)
 
 version = 0
-topology = {i: [] for i in range(1, 16)}
-classifier_errors = []
+topology = {i: [] for i in range(1, 17)}
+classifier_errors = [[] for i in range(16)]
 
 @app.route('/')
 def main():
@@ -38,14 +38,17 @@ def error_stream():
 @app.route('/classifier_stream/', methods=['GET', 'POST', 'DELETE'])
 def class_stream():
     global classifier_errors
-    if request.method == 'POST':
-        classifier_errors.append(float(request.form['value']))
-        return "OK"
-    elif request.method == 'DELETE':
-        classifier_errors = []
+    if request.method == 'DELETE':
+        classifier_errors = [[] for i in range(16)]
         return "OK"
     else:
         return Response(error_stream(), mimetype="text/event-stream")
+
+@app.route('/classifier_error/<int:node>', methods=['POST'])
+def add_error(node):
+    global classifier_errors
+    classifier_errors[node-1].append(float(request.form['value']))
+    return "OK"
 
 @app.route('/svm')
 def svm():
