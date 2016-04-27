@@ -165,6 +165,7 @@ class Messager:
         :param name: node to send to
         :param message: arbitrary python object to be sent
         """
+        time.sleep(int(self.getOwnName()) * 0.05)
         self.getSocket(name).send_pyobj(message)
 
     def waitForMessageFromAllNeighbors(self, sync):
