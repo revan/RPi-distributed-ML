@@ -42,8 +42,7 @@
     		}
     	}
     	myLineChart.data.labels = Array.apply(null, Array(maxLen)).map(function (_, i) {return i + 1;});
-    	console.log(myLineChart.data);
-    	myLineChart.update(5, true);
+    	myLineChart.update(100, true);
     };
 
 })();

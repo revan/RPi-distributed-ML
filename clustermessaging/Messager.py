@@ -78,7 +78,8 @@ class Messager:
                 self.topo = json.loads(r.text)
                 return
             except:
-                pass
+                import traceback
+                traceback.print_exc()
         with open('topo.json') as data_file:
             self.topo = json.load(data_file)
 

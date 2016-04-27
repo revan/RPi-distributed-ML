@@ -8,13 +8,18 @@
     <title>{% block title %}Demo{% endblock %}</title>
 </head>
 <body>
-	<a href="/wifi"><div class="button" id="button-wifi">WiFi</div></a>
-	<a href="/"><div class="button" id="button-wired">Wired</div></a>
+<div class="container">
+	<div class="row">
+	<a href="/wifi" class="button" id="button-wifi">WiFi</a>
+	<a href="/" class="button" id="button-wired">Wired</a>
+	<a href="/svm" class="button">SVM Demo</a>
 	<a href="/topo.json" class="button">View JSON</a>
+	<div id="alert"></div>
+	</div>
 
 	<script   src="https://code.jquery.com/jquery-2.2.3.min.js"   integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="   crossorigin="anonymous"></script>
 
 	{% block body %}{% endblock %}
-
+</div>
 </body>
 </html>

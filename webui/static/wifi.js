@@ -1,8 +1,10 @@
 var width=4;
 var height=4;
 var num_nodes = 16;
-var canvas_width = 600;
-var canvas_height = 400;
+var canvas_width = 1500;
+var canvas_height = 1000;
+var spawn_width = 600;
+var spawn_height = 400;
 var node_radius = 20;
 var signal_radius = 100;
 
@@ -38,8 +40,8 @@ var init_page = function() {
         });
 
         groups.push(new fabric.Group([signals[i], nodes[i], label], {
-            left: Math.floor((Math.random() * (canvas_width - 1.3 * signal_radius)) + 1 - 0.5 * signal_radius),
-            top: Math.floor((Math.random() * (canvas_height - 1.3 * signal_radius)) + 1 - 0.5 * signal_radius)
+            left: Math.floor((Math.random() * (spawn_width - 1.3 * signal_radius))),
+            top: Math.floor((Math.random() * (spawn_height - 1.3 * signal_radius)))
         }));
 
         groups[i].hasControls = false;
@@ -51,8 +53,8 @@ var init_page = function() {
         fill:'red',
         width: node_radius,
         height: node_radius,
-        left: Math.floor((Math.random() * (canvas_width - 2 * signal_radius)) + 1),
-        top: Math.floor((Math.random() * (canvas_height - 2 * signal_radius)) + 1)
+        left: Math.floor((Math.random() * (spawn_width - 2 * signal_radius)) + 1),
+        top: Math.floor((Math.random() * (spawn_height - 2 * signal_radius)) + 1)
     });
     target.hasControls = false;
     canvas.add(target);
@@ -85,7 +87,7 @@ var init_page = function() {
         var str = JSON.stringify(network);
         console.log(str);
         $.post('./topo.json', str, function() {
-            $('#notify').html("<h1>Saved!</h1>");
+            $('#alert').html("<h1>Saved!</h1>");
         });
     });
 };

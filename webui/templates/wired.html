@@ -2,16 +2,20 @@
 {% block head %}Wired {{ super() }}{% endblock %}
 {% block body %}
     
-    <br>
+    <div class="row">
     <div class="button button-primary" id="button-save">Save</div>
     <div class="button" id="button-grid">Grid</div>
     <div class="button" id="button-complete">Complete</div>
     From: <input id="from" type="number" min="1" max="16" value="1"/>
     To: <input id="to" type="number" min="1" max="16" value="16"/>
-    <br>
+    </div>
 
+    <div class="row"><br></div>
 
-    
+    <div class="row">
+    <div id="wired"></div>
+    </div>
+
     <script src="static/viz.js"></script>
     <script src="static/wired.js"></script>
     

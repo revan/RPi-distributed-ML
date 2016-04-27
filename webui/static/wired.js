@@ -22,7 +22,7 @@ var updateGraph = function() {
         }
     }
 
-    document.body.innerHTML += Viz(config + nodes + edges + "}");
+    $('#wired').html(Viz(config + nodes + edges + "}"));
 
     var addLinkToNetwork = function(node1, node2) {
         network[node1+""].push(+node2+"");
@@ -79,7 +79,7 @@ var updateGraph = function() {
         var str = JSON.stringify(network);
         console.log(str);
         $.post('./topo.json', str, function() {
-            document.body.innerHTML += "<h1>Saved!</h1>";
+            $('#alert').html("<h1>Saved!</h1>");
         });
     });
 };

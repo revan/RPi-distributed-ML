@@ -1,13 +1,15 @@
 {% extends "wired.html" %}
 {% block extra %}
-<div>
-Iterations: <input id="iterations" type="number" min="1" max="1000" value="100"/>
+<div class="row">
+Iterations: <input id="iterations" type="number" min="1" max="1000" value="30"/>
 Data Set: <select>
 	<option value="setosa">setosa</option>
 	<option value="another">another</option>
 </select>
 </div>
+<div class="row">
 <canvas id="myChart" width="1000" height="400"></canvas>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.js"></script>
 <script type="text/javascript" src="/static/svm.js"></script>
 {% endblock %}
