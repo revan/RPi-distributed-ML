@@ -1,6 +1,7 @@
 # Greedy Geo-Routing (async)
 import math
 import time
+import random
 from clustermessaging.LED import LED
 from clustermessaging.Messager import Messager
 import kazoo.recipe.watchers
@@ -19,7 +20,9 @@ def forwardMessage(path=None):
 
     distances = [(distanceToTarget(m.getLocation(id)), id) for id in m.getNeighbors().keys()]
     distances.append((distanceToTarget(m.getOwnLocation()), m.getOwnName()))
-    closest_neighbor = min(distances)[1]
+    mindist = min(distances)[0]
+
+    closest_neighbor = random.choice([neighbor for (dist, neighbor) in distances if dist == mindist])
 
     path.append(m.getOwnName())
 
