@@ -45,4 +45,10 @@
     	myLineChart.update(100, true);
     };
 
+    saveFun = function(network) {
+    	network.iterations = +$('#iterations').val();
+    	network.dataset = $('#dataset').val();
+    	return network;
+    };
+
 })();

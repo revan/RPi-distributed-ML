@@ -6,7 +6,13 @@ for (var i = 1; i <= width * height; i++) {
     network[i] = [];
 }
 
-var updateGraph = function() {    
+saveFun = function(network) {
+    console.log('default');
+    return network;
+};
+
+var updateGraph = function() {   
+    var that = this; 
     var config = 'graph{layout=neato;splines=true;node [shape=box style=filled];';
 
     $("svg").remove();
@@ -75,6 +81,8 @@ var updateGraph = function() {
     $('#button-save').unbind('click').click(function() {
         network.from = (+$('#from').val())+"";
         network.geo.target = network.geo[+$('#to').val()];
+
+        network = saveFun(network);
 
         var str = JSON.stringify(network);
         console.log(str);
